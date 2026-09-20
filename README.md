@@ -136,6 +136,35 @@ types and structure, then hashes the result — two functions with the same
 control flow and operations but different variable names/constants will
 collide.
 
+## Troubleshooting / FAQ
+
+**A file failed with "could not be analyzed" — why?**
+This means the file couldn't be parsed as Python (a real `SyntaxError`,
+e.g. Python 2-only syntax or a truncated file) or couldn't be decoded as
+UTF-8 (e.g. you pointed the tool at a binary file, or a source file uses
+a different encoding). The tool reports this per-file and keeps
+analyzing the rest of the batch rather than aborting the whole run.
+
+**Why does it flag things I don't think are actually problems, like
+single-letter variable names?**
+Every check is a fixed heuristic, not a judgment call informed by
+context — that's the trade-off for being deterministic and explainable.
+Use `--severity error warning` to hide the more opinionated `info`-level
+findings (like `non-descriptive-name` and `missing-docstring`) and focus
+on the checks closer to actual bugs.
+
+**Why didn't it catch an obvious duplicate function?**
+`duplicate-code` only compares function *bodies* of at least
+`MIN_DUPLICATE_STATEMENTS` (3) statements, and matches structurally
+(same control flow/operations after stripping names and literals) — two
+very short functions, or two functions that do the same thing via
+different control flow (e.g. a loop vs. a comprehension), won't be
+flagged as duplicates.
+
+**Does it call an LLM or send my code anywhere?**
+No. Everything runs locally using Python's built-in `ast` module — no
+network access, no API keys, no third-party dependencies.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
