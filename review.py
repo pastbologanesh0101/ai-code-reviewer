@@ -500,7 +500,9 @@ def main(argv=None):
     for path in files:
         try:
             all_findings[path] = analyze_file(path)
-        except SyntaxError as exc:
+        except (SyntaxError, UnicodeDecodeError, OSError) as exc:
+            # A single unreadable/undecodable/unparsable file should not
+            # abort analysis of the rest of the batch.
             all_findings[path] = exc
 
     print_report(all_findings, severity_filter)

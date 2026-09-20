@@ -376,6 +376,31 @@ class TestSyntaxErrorHandling(unittest.TestCase):
         self.assertIn("could not be analyzed", buf.getvalue())
 
 
+class TestUnreadableFileHandling(unittest.TestCase):
+    def test_main_reports_undecodable_file_without_crashing_batch(self):
+        """A file with bytes that aren't valid UTF-8 (e.g. accidentally
+        pointing the tool at a binary file) must be reported per-file,
+        not crash the whole run via an uncaught UnicodeDecodeError."""
+        import tempfile
+        import io
+        import contextlib
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            binary_path = os.path.join(tmpdir, "binary.py")
+            with open(binary_path, "wb") as f:
+                f.write(b"\xff\xfe\x00\x01not valid utf-8")
+            good_path = os.path.join(tmpdir, "good.py")
+            with open(good_path, "w") as f:
+                f.write("def ok():\n    \"\"\"Fine.\"\"\"\n    return 1\n")
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                exit_code = review.main([tmpdir])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("could not be analyzed", buf.getvalue())
+
+
 class TestFileDiscoverySkipsJunkDirs(unittest.TestCase):
     def test_discover_python_files_skips_pycache_and_venv(self):
         """Generated/vendored directories like __pycache__ and .venv must
