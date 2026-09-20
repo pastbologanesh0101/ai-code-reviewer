@@ -1,5 +1,8 @@
 # AI Code Reviewer
 
+[![tests](https://github.com/pastbologanesh0101/ai-code-reviewer/actions/workflows/tests.yml/badge.svg)](https://github.com/pastbologanesh0101/ai-code-reviewer/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A small, self-contained, **rule-based** Python code reviewer. It parses a
 `.py` file's Abstract Syntax Tree (`ast` module) and flags common
 complexity problems and anti-patterns — no LLM call, no network access,
@@ -8,6 +11,17 @@ no third-party dependencies. Pure Python standard library.
 Think of it as a deterministic "smart linter": every finding is produced
 by an explicit, inspectable rule, so the same input always produces the
 same output.
+
+## Table of contents
+
+- [Checks performed](#checks-performed)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Example output](#example-output)
+- [Running the tests](#running-the-tests)
+- [How it works (briefly)](#how-it-works-briefly)
+- [Troubleshooting / FAQ](#troubleshooting--faq)
+- [License](#license)
 
 ## Checks performed
 
