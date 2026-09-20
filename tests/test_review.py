@@ -344,6 +344,20 @@ class TestEndToEndMessySample(unittest.TestCase):
         self.assertGreater(len(findings), 20)
 
 
+class TestVersionFlag(unittest.TestCase):
+    def test_version_flag_prints_version_and_exits_zero(self):
+        import io
+        import contextlib
+
+        parser = review.build_arg_parser()
+        buf = io.StringIO()
+        with self.assertRaises(SystemExit) as ctx:
+            with contextlib.redirect_stdout(buf):
+                parser.parse_args(["--version"])
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertIn(review.__version__, buf.getvalue())
+
+
 class TestSyntaxErrorHandling(unittest.TestCase):
     def test_analyze_source_raises_syntax_error_on_invalid_python(self):
         """A file that isn't valid Python must raise SyntaxError from

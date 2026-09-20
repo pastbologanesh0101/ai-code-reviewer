@@ -30,6 +30,8 @@ from collections import defaultdict, Counter
 # Configuration / thresholds
 # ---------------------------------------------------------------------------
 
+__version__ = "0.1.0"
+
 COMPLEXITY_WARN_THRESHOLD = 10
 COMPLEXITY_ERROR_THRESHOLD = 15
 LONG_FUNCTION_LINES = 50
@@ -432,6 +434,11 @@ def build_arg_parser():
     parser = argparse.ArgumentParser(
         prog="review.py",
         description="Heuristic, AST-based Python code reviewer (no LLM involved).",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     parser.add_argument("path", help="Path to a .py file or a directory to scan recursively.")
     parser.add_argument(
