@@ -344,5 +344,59 @@ class TestEndToEndMessySample(unittest.TestCase):
         self.assertGreater(len(findings), 20)
 
 
+class TestSyntaxErrorHandling(unittest.TestCase):
+    def test_analyze_source_raises_syntax_error_on_invalid_python(self):
+        """A file that isn't valid Python must raise SyntaxError from
+        analyze_source, rather than crashing somewhere unexpected."""
+        src = "def broken(:\n    pass\n"
+        with self.assertRaises(SyntaxError):
+            review.analyze_source("t.py", src)
+
+    def test_main_reports_unparsable_file_without_crashing_other_files(self):
+        """main() should keep going and report a per-file error for an
+        unparsable file, instead of letting the exception propagate and
+        abort analysis of the rest of the batch."""
+        import tempfile
+        import io
+        import contextlib
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bad_path = os.path.join(tmpdir, "bad.py")
+            with open(bad_path, "w") as f:
+                f.write("def broken(:\n    pass\n")
+            good_path = os.path.join(tmpdir, "good.py")
+            with open(good_path, "w") as f:
+                f.write("def ok():\n    \"\"\"Fine.\"\"\"\n    return 1\n")
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                exit_code = review.main([tmpdir])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("could not be analyzed", buf.getvalue())
+
+
+class TestFileDiscoverySkipsJunkDirs(unittest.TestCase):
+    def test_discover_python_files_skips_pycache_and_venv(self):
+        """Generated/vendored directories like __pycache__ and .venv must
+        not be scanned, even though they can contain .py-like files."""
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            real_path = os.path.join(tmpdir, "real.py")
+            with open(real_path, "w") as f:
+                f.write("x = 1\n")
+
+            for junk_dir in ("__pycache__", ".venv"):
+                junk_path = os.path.join(tmpdir, junk_dir)
+                os.makedirs(junk_path)
+                with open(os.path.join(junk_path, "ignored.py"), "w") as f:
+                    f.write("y = 2\n")
+
+            found = review.discover_python_files(tmpdir)
+
+        self.assertEqual(found, [real_path])
+
+
 if __name__ == "__main__":
     unittest.main()
